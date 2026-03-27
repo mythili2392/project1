@@ -1,0 +1,47 @@
+name: Build and Push Docker Image to ECR
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: git-rep
+  AWS_ACCOUNT_ID: 010594764877
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 🔹 Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 🔹 Configure AWS credentials
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    # 🔹 Login to ECR
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    # 🔹 Build Docker image
+    - name: Build Docker image
+      run: docker build -t git-rep .
+
+    # 🔹 Tag image
+    - name: Tag Docker image
+      run: |
+        docker tag git-rep:latest 010594764877.dkr.ecr.ap-south-1.amazonaws.com/git-rep:latest
+
+    # 🔹 Push image
+    - name: Push Docker image
+      run: |
+        docker push 010594764877.dkr.ecr.ap-south-1.amazonaws.com/git-rep:latest
